@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="war" name="MySQLAdmin:war">
+    <output-path>$PROJECT_DIR$/target</output-path>
+    <root id="archive" name="MySQLAdmin.war">
+      <element id="artifact" artifact-name="MySQLAdmin:war exploded" />
+    </root>
+  </artifact>
+</component>
