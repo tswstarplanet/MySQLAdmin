@@ -139,6 +139,11 @@
                 e.preventDefault();
                 $(this).tab('show');
             });
+
+            $("#resultTabs").on("click", "a", function(e) {
+                e.preventDefault();
+                $(this).tab('show');
+            });
         });
 
         //////////
@@ -220,43 +225,65 @@
             }
         }
 
-        function addQueryTab(schemaName, tableName, content) {
+        function addQueryTab(schemaName, tableName, data) {
 //            pageNum++;
-            if ($('#' + schemaName + '_' + tableName + '_result').length <= 0) {
+            if ($('#' + schemaName + '_' + tableName + '_query').length <= 0) {
                 $('#queryTabs').append(
+                        $('<li><a href="#' + schemaName + '_' + tableName + '_query' + '">' +
+                                schemaName + '.' + tableName +
+                                '<button class="close" type="button" ' +
+                                'title="Remove this page">×</button>' +
+                                '</a></li>'));
+                $('#resultTabs').append(
                         $('<li><a href="#' + schemaName + '_' + tableName + '_result' + '">' +
                                 schemaName + '.' + tableName +
                                 '<button class="close" type="button" ' +
                                 'title="Remove this page">×</button>' +
                                 '</a></li>'));
-
-                $('#queryResults').append(
-                        $('<div class="tab-pane" id="' + schemaName + '_' + tableName + '_result' +
+                $('#queryContents').append(
+                        $('<div class="tab-pane" id="' + schemaName + '_' + tableName + '_query' +
                                 '"><textarea style="height: 65%; width: 100%" id="' + schemaName + '_' + tableName + '_textarea' + '"></textarea>' + '</div>'));
-                $('#' + schemaName + '_' + tableName + '_result').tab('show');
-                $('#' + schemaName + '_' + tableName + '_textarea').val(content);
-            } else {
-                $('#' + schemaName + '_' + tableName + '_textarea').val(content);
+                $('#resultContents').append(
+                        $('<div class="tab-pane" id="' + schemaName + '_' + tableName + '_result' +
+                                '"><table class="table table-bordered table-striped table-hover" style="height: 65%; width: 100%" id="' + schemaName + '_' + tableName + '_table' + '"></table>' + '</div>'));
+//                $('#' + schemaName + '_' + tableName + '_result').tab('show');
+//                $('#' + schemaName + '_' + tableName + '_result').tab('show');
+                $('#' + schemaName + '_' + tableName + '_textarea').val(data.sql);
+                $('#' + schemaName + '_' + tableName + '_result_textarea').val('ABC');
+                displayResults($('#' + schemaName + '_' + tableName + '_table'), schemaName, tableName, data);
             }
+        }
 
-//            $('div#queryDiv').removeClass('active').removeClass('in');
-//            $('li#queryLi').removeClass('active');
-//            $('#queryResults').append(
-////                    '<div class="tab-pane fade" id="' + schemaName + '.' + tableName + '_tab"><textarea style="width: 100%; height: 65%;" id="' + schemaName + "." + tableName + '_textarea"></textarea></div>'
-//                    $('<div class="tab-pane fade in active" id="' + schemaName + '.' + tableName + '_result"><textarea style="width: 100%; height: 65%;" id="' + schemaName + '.' + tableName + '_textarea"></textarea></div>')
-//            );
-//            $('#queryTabs').append(
-//                    $('<li><a href="#' + schemaName + '.' + tableName + '_result" data-toggle="tab">' + schemaName + '.' + tableName + ' ' +
-//                    '<span style="font-size: xx-small;" class="glyphicon glyphicon-remove"></span></a></li>')
-//            );
-//            $('#queryTabs a:last').tab('show');
-//            var tabId = schemaName + '.' + tableName + '_textarea';
-////            alert(content);
-////            alert(document.getElementById(tabId).id);
-//            document.getElementById("query_textarea").innerHTML = "abc";
-//            document.getElementById(tabId).innerHTML = "wts";
-//
-////          $('#query_textarea').val('abc');
+        function displayResults(table, schemaName, tableName, data) {
+            table.append($('<thead><tr></tr></thead>'));
+            table.append($('<tbody></tbody>'));
+            var dataList = data.dataList;
+            var columnList = new Array();
+            if (dataList.length > 0) {
+                var firstObj = dataList[0];
+                for(colName in firstObj) {
+                    table.find("thead").find("tr").append($('<th>' + colName + '</th>'));
+                    columnList.push(colName);
+                }
+//                console.log(columnList);
+                for(i = 0; i < dataList.length; i++) {
+                    var row = "<tr>";
+
+                    for (j in columnList) {
+                        row = row + "<td><div style='height: 20px;' >" + dataList[i][columnList[j]] + "</div></td>";
+                    }
+                    row += "</tr>";
+                    table.find("tbody").append(row);
+//                    table.find("tbody").append('<tr></tr>');
+//                    var trList = table.find("tbody").lastChild;
+//                    console.log(trList);
+//                    var lastTr = trList[trList.length - 1];
+//                    console.log(lastTr);
+//                    for (colName in columnList) {
+//                        lastTr.append($('<th>' + dataList[i][colName] + '</th>'))
+//                    }
+                }
+            }
         }
 
         function queryTable() {
@@ -274,7 +301,8 @@
                     tableName: tableName
                 },
                 success: function (data) {
-                    addQueryTab(schemaName, tableName, data.sql);
+                    console.log(data);
+                    addQueryTab(schemaName, tableName, data);
                 },
                 error: function (data) {
                     alert("error");
@@ -342,150 +370,48 @@
         </div>
         <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main" style="padding: 20px; height: 100%;">
             <div class="row-fluid" style="height: 33%; padding-bottom: 5px;">
-
-                    <div class="panel panel-default" style="height: 100%;">
-                        <div class="panel-heading">执行区</div>
-                        <%--<div class="panel-body">--%>
-                        <ul id="queryTabs" class="nav nav-tabs">
-                            <li class="active"><a href="#queryDiv" data-toggle="tab">Query</a></li>
-                        </ul>
-                        <div id="queryResults" class="tab-content">
-                            <div class="tab-pane active" id="queryDiv">
-                                <textarea id="query_textarea" style="width: 100%; height: 65%;"></textarea>
-                            </div>
-                        </div>
-                            <%--<ul id="queryTabs" class="nav nav-tabs" style="padding-bottom: 5px;">--%>
-                                <%--<li id="queryLi" class="active">--%>
-                                    <%--<a href="#queryDiv" data-toggle="tab">--%>
-                                        <%--Query--%>
-                                    <%--</a>--%>
-                                <%--</li>--%>
-                                <%--<li id="queryLi2">--%>
-                                    <%--<a href="#queryDiv2" data-toggle="tab">--%>
-                                        <%--Query--%>
-                                    <%--</a>--%>
-                                <%--</li>--%>
-                            <%--</ul>--%>
-                            <%--<div id="queryResults" class="tab-content">--%>
-                                <%--<div class="tab-pane fade in active" id="queryDiv">--%>
-                                    <%--<textarea id="query_textarea2" style="width: 100%; height: 65%;"></textarea>--%>
-                                <%--</div>--%>
-                                <%--<div class="tab-pane fade" id="queryDiv2">--%>
-                                    <%--<textarea id="query_textarea" style="width: 100%; height: 65%;"></textarea>--%>
-                                <%--</div>--%>
-                            <%--</div>--%>
-                        <%--</div>--%>
-                    </div>
-
-            </div>
-            <div class="row-fluid" style="height: 33%;">
                 <div class="panel panel-default" style="height: 100%;">
-                    <div class="panel-heading">结果区</div>
-                    <a href="javascript:;" id="btnAddPage" role="button">Add Page</a>
-                    <%--<div class="panel-body">--%>
-                    <%--<ul id="pageTab" class="nav nav-tabs">--%>
-                        <%--<li class="active"><a href="#page1" data-toggle="tab">Page1</a></li>--%>
-                    <%--</ul>--%>
-                    <%--<div id="pageTabContent" class="tab-content">--%>
-                        <%--<div class="tab-pane active" id="page1">--%>
-                            <%--Content Page1--%>
-                        <%--</div>--%>
-                    <%--</div>--%>
-                    <%--</div>--%>
-                </div>
-                <div class="span12">
-                    <table class="table">
-                        <thead>
-                        <tr>
-                            <th>
-                                编号
-                            </th>
-                            <th>
-                                产品
-                            </th>
-                            <th>
-                                交付时间
-                            </th>
-                            <th>
-                                状态
-                            </th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <tr>
-                            <td>
-                                1
-                            </td>
-                            <td>
-                                TB - Monthly
-                            </td>
-                            <td>
-                                01/04/2012
-                            </td>
-                            <td>
-                                Default
-                            </td>
-                        </tr>
-                        <tr class="success">
-                            <td>
-                                1
-                            </td>
-                            <td>
-                                TB - Monthly
-                            </td>
-                            <td>
-                                01/04/2012
-                            </td>
-                            <td>
-                                Approved
-                            </td>
-                        </tr>
-                        <tr class="error">
-                            <td>
-                                2
-                            </td>
-                            <td>
-                                TB - Monthly
-                            </td>
-                            <td>
-                                02/04/2012
-                            </td>
-                            <td>
-                                Declined
-                            </td>
-                        </tr>
-                        <tr class="warning">
-                            <td>
-                                3
-                            </td>
-                            <td>
-                                TB - Monthly
-                            </td>
-                            <td>
-                                03/04/2012
-                            </td>
-                            <td>
-                                Pending
-                            </td>
-                        </tr>
-                        <tr class="info">
-                            <td>
-                                4
-                            </td>
-                            <td>
-                                TB - Monthly
-                            </td>
-                            <td>
-                                04/04/2012
-                            </td>
-                            <td>
-                                Call in to confirm
-                            </td>
-                        </tr>
-                        </tbody>
-                    </table>
+                    <div class="panel-heading">执行区</div>
+                    <ul id="queryTabs" class="nav nav-tabs">
+                        <li class="active"><a href="#queryDiv" data-toggle="tab">Query</a></li>
+                    </ul>
+                    <div id="queryContents" class="tab-content">
+                        <div class="tab-pane active" id="queryDiv">
+                            <textarea id="query_textarea" style="width: 100%; height: 65%;"></textarea>
+                        </div>
+                    </div>
                 </div>
             </div>
+            <div class="row-fluid" style="height: 33%; padding-bottom: 5px;">
+                <div class="panel panel-default" style="height: 100%;">
+                    <div class="panel-heading">执行区</div>
+                    <ul id="resultTabs" class="nav nav-tabs">
+                        <li class="active"><a href="#resultDiv" data-toggle="tab">Query</a></li>
+                    </ul>
+                    <div id="resultContents" class="tab-content">
+                        <div class="tab-pane active" id="resultDiv">
+                            <textarea id="result_textarea" style="width: 100%; height: 65%;"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <%--<div class="row-fluid" style="height: 33%;">--%>
+                <%--<div class="panel panel-default" style="height: 100%;">--%>
+                    <%--<div class="panel-heading">结果区</div>--%>
+                    <%--<ul id="resultTabs" class="nav nav-tabs">--%>
+                        <%--<li class="active"><a href="#resultDiv" data-toggle="tab">Query</a></li>--%>
+                        <%--<li><a href="#resultDiv2" data-toggle="tab">Query</a></li>--%>
+                    <%--</ul>--%>
+                    <%--<div id="resultContents" class="tab-content">--%>
+                        <%--<div class="tab-pane active" id="resultDiv">--%>
+                            <%--wts--%>
+                        <%--</div>--%>
+                        <%--<div class="tab-pane" id="resultDiv2">--%>
+                            <%--wts2--%>
+                        <%--</div>--%>
+                    <%--</div>--%>
+                <%--</div>--%>
+            <%--</div>--%>
         </div>
     </div>
 </div>
