@@ -102,6 +102,7 @@
         }
 
         $(document).ready(function() {
+            alert("hello");
             /**
              * Add a Tab
              */
